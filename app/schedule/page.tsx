@@ -4,7 +4,6 @@ import { useState, Suspense, useEffect, useMemo } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import { Zap, RefreshCw, Loader2 } from "lucide-react";
-import { load } from "@cashfreepayments/cashfree-js";
 
 const jakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -28,26 +27,6 @@ interface AvailableSlotsResponse {
   scheduleByDate: Record<string, Slot[]>;
 }
 
-function getDateTabs() {
-  const today = new Date();
-  const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-
-  return Array.from({ length: 3 }, (_, i) => {
-    const d = new Date(today);
-    d.setDate(d.getDate() + i);
-    const dateStr = d.toISOString().split("T")[0];
-    const month = monthNames[d.getMonth()];
-    const dayNum = d.getDate();
-
-    let label = `${dayNames[d.getDay()]}, ${month} ${dayNum}`;
-    if (i === 0) label = `Today, ${month} ${dayNum}`;
-    else if (i === 1) label = `Tomorrow, ${month} ${dayNum}`;
-
-    return { label, date: dateStr };
-  });
-}
-
 function SchedulePage() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -61,7 +40,28 @@ function SchedulePage() {
   const [processingSlot, setProcessingSlot] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const dateTabs = useMemo(() => getDateTabs(), []);
+  const dateTabs = useMemo(() => {
+    if (!data) return [];
+    
+    const keys = Object.keys(data.scheduleByDate).sort();
+    
+    const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+    return keys.map((dateStr, i) => {
+      // Parse as strict UTC so the local browser timezone doesn't shift the day backwards
+      const d = new Date(`${dateStr}T00:00:00Z`);
+      const month = monthNames[d.getUTCMonth()];
+      const dayNum = d.getUTCDate();
+      const dayName = dayNames[d.getUTCDay()];
+
+      let label = `${dayName}, ${month} ${dayNum}`;
+      if (i === 0) label = `Today, ${month} ${dayNum}`;
+      else if (i === 1) label = `Tomorrow, ${month} ${dayNum}`;
+
+      return { label, date: dateStr };
+    });
+  }, [data]);
 
   useEffect(() => {
     let cancelled = false;
@@ -70,9 +70,19 @@ function SchedulePage() {
 
     const loadData = async () => {
       try {
-        const res = await fetch(`/api/bookings/available/slots?${params}`, { cache: "no-store" });
+        // FIX 2: Prepend the API URL variable to prevent CORS/proxy issues 
+        // and fixed the route path to match your backend exactly.
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "";
+        const res = await fetch(`${apiUrl}/api/bookings/available/slots?${params.toString()}`, { 
+          cache: "no-store" 
+        });
+
+        console.log(res);
+        
+        
         const json: AvailableSlotsResponse = await res.json();
         if (!json.success || cancelled) return;
+        
         setData(json);
         setState("success");
         const keys = Object.keys(json.scheduleByDate);
@@ -86,47 +96,28 @@ function SchedulePage() {
     return () => { cancelled = true; };
   }, [igId, retry]);
 
-  const handleSlotClick = async (date: string, time: string) => {
+ const handleSlotClick = (date: string, time: string) => {
     if (!igId || isProcessing) return;
+    
+    // Set UI to loading state so the button shows a spinner while navigating
     setIsProcessing(true);
     setProcessingSlot(time);
     setErrorMsg(null);
 
     try {
-      const cashfree = await load({ mode: "sandbox" });
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/payments/create-order`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            igAccountId: igId,
-            planId: "1-day",
-            scheduledDate: date,
-            scheduledTime: time,
-          }),
-        },
-      );
-      const resData = await response.json();
-      if (!resData.payment_session_id) throw new Error("No session ID returned");
-
-      const result = await cashfree.checkout({
-        paymentSessionId: resData.payment_session_id,
-        redirectTarget: "_modal",
+      // Package the selected slot data into the URL
+      const params = new URLSearchParams({
+        igId: igId,
+        date: date,
+        time: time,
       });
 
-      if (result.error) {
-        setErrorMsg(result.error.message || "Payment was canceled.");
-      } else if (result.paymentDetails) {
-        router.push(`/success?igId=${igId}`);
-      }
+      // Push the user to the pricing page
+      router.push(`/pricing?${params.toString()}`);
+      
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (err) {
-      setErrorMsg(
-        err instanceof Error && err.message === "Payment was canceled."
-          ? err.message
-          : "Could not connect to payment gateway.",
-      );
-    } finally {
+      setErrorMsg("Failed to navigate to the pricing page.");
       setIsProcessing(false);
       setProcessingSlot(null);
     }
