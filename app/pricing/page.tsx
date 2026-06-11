@@ -29,22 +29,22 @@ function PricingCards() {
   const [loading, setLoading] = useState(false);
   const [errorInfo, setErrorInfo] = useState({ isOpen: false, message: "" });
 
-  // Calculate End Time (1-hour duration)
   const getEndTime = (startTime: string | null) => {
     if (!startTime) return "N/A";
     const [timeStr, period] = startTime.split(" ");
-    const timeParts = timeStr.split(":").map(Number);
-    let hours = timeParts[0];
-    const minutes = timeParts[1];
-
+    const [h, m] = timeStr.split(":").map(Number);
+    let hours = h;
     if (period === "PM" && hours !== 12) hours += 12;
     if (period === "AM" && hours === 12) hours = 0;
 
-    let endHours = hours + 1;
-    const endPeriod = endHours >= 12 ? "PM" : "AM";
-    endHours = endHours % 12 || 12;
+    const totalMinutes = hours * 60 + m + 15;
+    let endH = Math.floor(totalMinutes / 60) % 24;
+    const endM = totalMinutes % 60;
+    const endP = endH >= 12 ? "PM" : "AM";
+    if (endH === 0) endH = 12;
+    else if (endH > 12) endH -= 12;
 
-    return `${String(endHours).padStart(2, "0")}:${String(minutes).padStart(2, "0")} ${endPeriod}`;
+    return `${String(endH).padStart(2, "0")}:${String(endM).padStart(2, "0")} ${endP}`;
   };
 
   const handlePayment = async () => {
@@ -110,14 +110,14 @@ function PricingCards() {
       <div className="w-full max-w-sm space-y-8">
         <div className="text-center space-y-2">
           <h1 className="text-3xl font-bold tracking-tight">
-            Let&apos;s connect
+            15-Minute Live Chat
           </h1>
-          <p className="text-zinc-400">Unlock your access for the day</p>
+          <p className="text-zinc-400">Connect via Instagram DMs</p>
         </div>
 
         <div className="relative overflow-hidden rounded-3xl bg-[#2a2a2c] border border-white/10 p-8 transition-all hover:border-white/20">
           <div className="flex justify-between items-center mb-8">
-            <h3 className="text-xl font-semibold">Day Pass</h3>
+            <h3 className="text-xl font-semibold">15-Minute Chat</h3>
             <span className="text-3xl font-bold">₹6</span>
           </div>
 
