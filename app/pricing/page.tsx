@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import ErrorModal from "@/components/ui/modal";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Calendar03Icon, Time02Icon } from "@hugeicons/core-free-icons";
+import { Calendar03Icon } from "@hugeicons/core-free-icons";
 
 const jakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -25,28 +25,28 @@ function PricingCards() {
   const router = useRouter();
   const igId = searchParams.get("igId");
   const date = searchParams.get("date");
-  const time = searchParams.get("time");
+  // const time = searchParams.get("time");
 
   const [loading, setLoading] = useState(false);
   const [errorInfo, setErrorInfo] = useState({ isOpen: false, message: "" });
 
-  const getEndTime = (startTime: string | null) => {
-    if (!startTime) return "N/A";
-    const [timeStr, period] = startTime.split(" ");
-    const [h, m] = timeStr.split(":").map(Number);
-    let hours = h;
-    if (period === "PM" && hours !== 12) hours += 12;
-    if (period === "AM" && hours === 12) hours = 0;
+  // const getEndTime = (startTime: string | null) => {
+  //   if (!startTime) return "N/A";
+  //   const [timeStr, period] = startTime.split(" ");
+  //   const [h, m] = timeStr.split(":").map(Number);
+  //   let hours = h;
+  //   if (period === "PM" && hours !== 12) hours += 12;
+  //   if (period === "AM" && hours === 12) hours = 0;
 
-    const totalMinutes = hours * 60 + m + 40; // Updated to match your 40-minute slot interval
-    let endH = Math.floor(totalMinutes / 60) % 24;
-    const endM = totalMinutes % 60;
-    const endP = endH >= 12 ? "PM" : "AM";
-    if (endH === 0) endH = 12;
-    else if (endH > 12) endH -= 12;
+  //   const totalMinutes = hours * 60 + m + 40; // Updated to match your 40-minute slot interval
+  //   let endH = Math.floor(totalMinutes / 60) % 24;
+  //   const endM = totalMinutes % 60;
+  //   const endP = endH >= 12 ? "PM" : "AM";
+  //   if (endH === 0) endH = 12;
+  //   else if (endH > 12) endH -= 12;
 
-    return `${String(endH).padStart(2, "0")}:${String(endM).padStart(2, "0")} ${endP}`;
-  };
+  //   return `${String(endH).padStart(2, "0")}:${String(endM).padStart(2, "0")} ${endP}`;
+  // };
 
   const handlePayment = async () => {
     if (!igId) {
@@ -67,9 +67,9 @@ function PricingCards() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             igAccountId: igId,
-            planId: "1-day",
-            scheduledDate: date,
-            scheduledTime: time,
+            // planId: "normal",
+            // scheduledDate: date,
+            // scheduledTime: time,
           }),
         }
       );
@@ -95,12 +95,14 @@ function PricingCards() {
       } else {
         throw new Error("No session ID returned");
       }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       setErrorInfo({
         isOpen: true,
         message: "Could not connect to payment gateway.",
       });
+
+      console.log(error);
+      
     } finally {
       setLoading(false);
     }
@@ -152,7 +154,7 @@ function PricingCards() {
                 </div>
               </div>
 
-              <div className="flex items-start gap-4">
+              {/* <div className="flex items-start gap-4">
                 <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-500">
                   <HugeiconsIcon size={14} icon={Time02Icon} />
                 </div>
@@ -160,7 +162,7 @@ function PricingCards() {
                   <p className="text-sm font-bold text-zinc-900">Selected Time</p>
                   <p className="text-sm font-medium text-zinc-500">{time} to {getEndTime(time)}</p>
                 </div>
-              </div>
+              </div> */}
 
               <div className="flex items-start gap-4">
                 <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-500">

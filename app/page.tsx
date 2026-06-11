@@ -43,7 +43,7 @@ function ProfilePage() {
       setShowError(true);
       return;
     }
-    router.push(`/schedule?igId=${igId}`);
+    router.push(`/pricing?igId=${igId}`);
   };
 
   return (
