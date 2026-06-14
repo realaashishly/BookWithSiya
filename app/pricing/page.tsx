@@ -10,7 +10,6 @@ import {
   Ban,
   CheckCircle2,
   ImageOff,
-  CircleCheck,
 } from "lucide-react";
 import ErrorModal from "@/components/ui/modal";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -219,9 +218,9 @@ function PricingCards() {
           </div>
 
           {/* ----------------- PREMIUM CARD (₹99) ----------------- */}
-          <div className="relative flex w-full flex-1 flex-col justify-between overflow-hidden rounded-[32px] border border-zinc-200 bg-white p-8 shadow-xl shadow-black/3">
+          {/* <div className="relative flex w-full flex-1 flex-col justify-between overflow-hidden rounded-[32px] border border-zinc-200 bg-white p-8 shadow-xl shadow-black/3">
             <div>
-              {/* Top Row: Title & Price */}
+             
               <div className="mb-8 flex items-start justify-between border-b border-zinc-100 pb-6">
                 <div>
                   <h3 className="text-xl font-bold text-zinc-900">Premium</h3>
@@ -239,7 +238,6 @@ function PricingCards() {
                 </div>
               </div>
 
-              {/* Feature List */}
               <div className="space-y-5">
                 <div className="flex items-start gap-4">
                   <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-500">
@@ -284,7 +282,7 @@ function PricingCards() {
                 </div>
 
                 <div className="flex items-start gap-4">
-                  {/* Corrected text-green-500 to text-red-500 for matching context */}
+                 
                   <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-green-50 text-green-500">
                     <CircleCheck size={14} strokeWidth={2.5} />
                   </div>
@@ -300,7 +298,6 @@ function PricingCards() {
               </div>
             </div>
 
-            {/* Payment Button */}
             <button
               onClick={() => handlePayment("Premium")}
               disabled={loading}
@@ -318,7 +315,7 @@ function PricingCards() {
                 </>
               )}
             </button>
-          </div>
+          </div> */}
         </div>
 
         {/* Footer Text */}
