@@ -285,7 +285,7 @@ function PricingCards() {
 
                 <div className="flex items-start gap-4">
                   {/* Corrected text-green-500 to text-red-500 for matching context */}
-                  <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-red-50 text-green-500">
+                  <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-green-50 text-green-500">
                     <CircleCheck size={14} strokeWidth={2.5} />
                   </div>
                   <div>
