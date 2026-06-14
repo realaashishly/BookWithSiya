@@ -26,30 +26,11 @@ function PricingCards() {
   const router = useRouter();
   const igId = searchParams.get("igId");
   const date = searchParams.get("date");
-  // const time = searchParams.get("time");
 
   const [loading, setLoading] = useState(false);
   const [errorInfo, setErrorInfo] = useState({ isOpen: false, message: "" });
 
-  // const getEndTime = (startTime: string | null) => {
-  //   if (!startTime) return "N/A";
-  //   const [timeStr, period] = startTime.split(" ");
-  //   const [h, m] = timeStr.split(":").map(Number);
-  //   let hours = h;
-  //   if (period === "PM" && hours !== 12) hours += 12;
-  //   if (period === "AM" && hours === 12) hours = 0;
-
-  //   const totalMinutes = hours * 60 + m + 40; // Updated to match your 40-minute slot interval
-  //   let endH = Math.floor(totalMinutes / 60) % 24;
-  //   const endM = totalMinutes % 60;
-  //   const endP = endH >= 12 ? "PM" : "AM";
-  //   if (endH === 0) endH = 12;
-  //   else if (endH > 12) endH -= 12;
-
-  //   return `${String(endH).padStart(2, "0")}:${String(endM).padStart(2, "0")} ${endP}`;
-  // };
-
-  const handlePayment = async () => {
+  const handlePayment = async (planName: string) => {
     if (!igId) {
       setErrorInfo({
         isOpen: true,
@@ -61,6 +42,13 @@ function PricingCards() {
 
     try {
       const cashfree = await load({ mode: "sandbox" });
+      if (!cashfree) {
+        throw new Error(
+          "Failed to load payment gateway. Please check your connection.",
+        );
+      }
+
+
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL || ""}/api/payments/create-order`,
         {
@@ -68,13 +56,17 @@ function PricingCards() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             igAccountId: igId,
-            planName: "Basic",
-            // scheduledDate: date,
-            // scheduledTime: time,
+            planName: planName,
           }),
         },
       );
       const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(
+          data.error || "Failed to initiate payment on the server.",
+        );
+      }
 
       if (data.payment_session_id) {
         cashfree
@@ -208,7 +200,7 @@ function PricingCards() {
 
             {/* Payment Button */}
             <button
-              onClick={handlePayment}
+              onClick={() => handlePayment("Basic")}
               disabled={loading}
               className="mt-10 flex w-full items-center justify-center gap-2 rounded-2xl bg-zinc-900 py-4 text-[15px] font-bold text-white shadow-md transition-all hover:bg-zinc-800 active:scale-[0.98] disabled:scale-100 disabled:opacity-70"
             >
@@ -310,7 +302,7 @@ function PricingCards() {
 
             {/* Payment Button */}
             <button
-              onClick={handlePayment}
+              onClick={() => handlePayment("Premium")}
               disabled={loading}
               className="mt-10 flex w-full items-center justify-center gap-2 rounded-2xl bg-zinc-900 py-4 text-[15px] font-bold text-white shadow-md transition-all hover:bg-zinc-800 active:scale-[0.98] disabled:scale-100 disabled:opacity-70"
             >
