@@ -1,19 +1,38 @@
-import { NextResponse } from 'next/server';
+import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
 
-    const response = await fetch(`${process.env.EXPRESS_SERVER_URL}/api/payments/create/order`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    // 1. Provide a safe fallback so it never becomes 'undefined'
+    const backendUrl =
+      process.env.EXPRESS_SERVER_URL || "http://localhost:8000";
+    const targetUrl = `${backendUrl}/api/payments/create/order`;
+
+    console.log(`[Next.js Proxy] Forwarding payment request to: ${targetUrl}`);
+
+    const response = await fetch(targetUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     });
 
     const data = await response.json();
-    return NextResponse.json(data);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
+    // 2. Forward the exact status code from Express to the frontend!
+    // If Express fails (e.g., 400), Next.js will correctly tell the browser it failed (400).
+    return NextResponse.json(data, { status: response.status });
   } catch (error) {
-    return NextResponse.json({ error: "Backend communication failed" }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error("[Next.js Proxy] CRITICAL ERROR:", error);
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Backend communication failed",
+        details: errorMessage,
+      },
+      { status: 500 },
+    );
   }
 }
