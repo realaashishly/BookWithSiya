@@ -4,9 +4,8 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
 
-    // 1. Provide a safe fallback so it never becomes 'undefined'
     const backendUrl =
-      process.env.EXPRESS_SERVER_URL || "http://localhost:8000";
+      process.env.NEXT_PUBLIC_EXPRESS_SERVER_URL || "http://localhost:8000";
     const targetUrl = `${backendUrl}/api/payments/create/order`;
 
     console.log(`[Next.js Proxy] Forwarding payment request to: ${targetUrl}`);
@@ -19,8 +18,6 @@ export async function POST(req: Request) {
 
     const data = await response.json();
 
-    // 2. Forward the exact status code from Express to the frontend!
-    // If Express fails (e.g., 400), Next.js will correctly tell the browser it failed (400).
     return NextResponse.json(data, { status: response.status });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);

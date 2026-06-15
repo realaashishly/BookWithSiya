@@ -40,7 +40,7 @@ function PricingCards() {
     setLoading(true);
 
     try {
-      const cashfree = await load({ mode: "sandbox" });
+      const cashfree = await load({ mode: process.env.NEXT_PUBLIC_CASHFREE_ENVIRONMENT as "sandbox" | "production" });
       if (!cashfree) {
         throw new Error(
           "Failed to load payment gateway. Please check your connection.",
@@ -199,7 +199,7 @@ function PricingCards() {
 
             {/* Payment Button */}
             <button
-              onClick={() => handlePayment("Basic")}
+              onClick={() => handlePayment("Daily")}
               disabled={loading}
               className="mt-10 flex w-full items-center justify-center gap-2 rounded-2xl bg-zinc-900 py-4 text-[15px] font-bold text-white shadow-md transition-all hover:bg-zinc-800 active:scale-[0.98] disabled:scale-100 disabled:opacity-70"
             >
@@ -211,7 +211,7 @@ function PricingCards() {
               ) : (
                 <>
                   <CheckCircle2 size={18} />
-                  <span>Pay ₹9 & Secure Spot</span>
+                  <span>Pay ₹5 & Secure Spot</span>
                 </>
               )}
             </button>

@@ -12,6 +12,7 @@ const jakarta = Plus_Jakarta_Sans({
   weight: ["400", "500", "600", "700"],
 });
 
+
 function ProfilePage() {
   const [showError, setShowError] = useState(false);
   const searchParams = useSearchParams();
@@ -22,8 +23,6 @@ function ProfilePage() {
   const [isLiked, setIsLiked] = useState(false);
 
   useEffect(() => {
-    // Generates a random number between 1,000 and 10,000 once the page loads
-    // Wrapped in a setTimeout to avoid calling setState synchronously in the effect
     const timer = setTimeout(() => {
       const randomInitialLikes = Math.floor(Math.random() * 1001) + 1000;
       setLikes(randomInitialLikes);
@@ -37,7 +36,6 @@ function ProfilePage() {
     setLikes((prev) => (isLiked ? prev - 1 : prev + 1));
   };
 
-  // Restored the click handler to trigger the error modal if igId is missing
   const handleChatClick = () => {
     if (!igId) {
       setShowError(true);
