@@ -126,15 +126,15 @@ function PricingCards() {
                     Live Chat Session
                   </h3>
                   <p className="mt-1 text-sm font-medium text-zinc-500">
-                    24 Hours
+                    Available for a limited time
                   </p>
                 </div>
                 <div className="text-right">
                   <span className="text-4xl font-extrabold tracking-tight text-zinc-900">
-                    ₹9
+                    ₹5
                   </span>
                   <p className="mt-1 text-[11px] font-bold uppercase tracking-wider text-emerald-500">
-                    One Time
+                    per session
                   </p>
                 </div>
               </div>
