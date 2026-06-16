@@ -18,6 +18,8 @@ export async function POST(req: Request) {
 
     const data = await response.json();
 
+    console.log("[Next.js Proxy] Response from backend:", data);
+
     return NextResponse.json(data, { status: response.status });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);

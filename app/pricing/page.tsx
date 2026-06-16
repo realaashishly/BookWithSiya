@@ -26,10 +26,26 @@ function PricingCards() {
   const igId = searchParams.get("igId");
   const date = searchParams.get("date");
 
+  // Existing states
   const [loading, setLoading] = useState(false);
   const [errorInfo, setErrorInfo] = useState({ isOpen: false, message: "" });
 
-  const handlePayment = async (planName: string) => {
+  // New states for the details modal
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState("");
+  const [customerEmail, setCustomerEmail] = useState("");
+  const [customerPhone, setCustomerPhone] = useState("");
+
+  const handlePlanSelection = (planName: string) => {
+    setSelectedPlan(planName);
+    setShowDetailsModal(true);
+  };
+
+  const handlePayment = async (
+    planName: string,
+    email: string,
+    phone: string,
+  ) => {
     if (!igId) {
       setErrorInfo({
         isOpen: true,
@@ -40,13 +56,17 @@ function PricingCards() {
     setLoading(true);
 
     try {
-      const cashfree = await load({ mode: process.env.NEXT_PUBLIC_CASHFREE_ENVIRONMENT as "sandbox" | "production" });
+      const cashfree = await load({
+        mode: process.env.NEXT_PUBLIC_CASHFREE_ENVIRONMENT as
+          | "sandbox"
+          | "production",
+      });
+
       if (!cashfree) {
         throw new Error(
           "Failed to load payment gateway. Please check your connection.",
         );
       }
-
 
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL || ""}/api/payments/create-order`,
@@ -56,6 +76,8 @@ function PricingCards() {
           body: JSON.stringify({
             igAccountId: igId,
             planName: planName,
+            customerEmail: email, // Passed to backend
+            customerPhone: phone, // Passed to backend
           }),
         },
       );
@@ -97,6 +119,19 @@ function PricingCards() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const onModalSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!customerEmail.includes("@") || customerPhone.length !== 10) {
+      setErrorInfo({
+        isOpen: true,
+        message: "Please enter a valid email and 10-digit phone number.",
+      });
+      return;
+    }
+    setShowDetailsModal(false);
+    handlePayment(selectedPlan, customerEmail, customerPhone);
   };
 
   return (
@@ -199,7 +234,7 @@ function PricingCards() {
 
             {/* Payment Button */}
             <button
-              onClick={() => handlePayment("Daily")}
+              onClick={() => handlePlanSelection("Daily")}
               disabled={loading}
               className="mt-10 flex w-full items-center justify-center gap-2 rounded-2xl bg-zinc-900 py-4 text-[15px] font-bold text-white shadow-md transition-all hover:bg-zinc-800 active:scale-[0.98] disabled:scale-100 disabled:opacity-70"
             >
@@ -218,104 +253,7 @@ function PricingCards() {
           </div>
 
           {/* ----------------- PREMIUM CARD (₹99) ----------------- */}
-          {/* <div className="relative flex w-full flex-1 flex-col justify-between overflow-hidden rounded-[32px] border border-zinc-200 bg-white p-8 shadow-xl shadow-black/3">
-            <div>
-             
-              <div className="mb-8 flex items-start justify-between border-b border-zinc-100 pb-6">
-                <div>
-                  <h3 className="text-xl font-bold text-zinc-900">Premium</h3>
-                  <p className="mt-1 text-sm font-medium text-zinc-500">
-                    24 Hours
-                  </p>
-                </div>
-                <div className="text-right">
-                  <span className="text-4xl font-extrabold tracking-tight text-zinc-900">
-                    ₹99
-                  </span>
-                  <p className="mt-1 text-[11px] font-bold uppercase tracking-wider text-emerald-500">
-                    One Time
-                  </p>
-                </div>
-              </div>
-
-              <div className="space-y-5">
-                <div className="flex items-start gap-4">
-                  <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-500">
-                    <HugeiconsIcon size={14} icon={Calendar03Icon} />
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold text-zinc-900">
-                      Scheduled Date
-                    </p>
-                    <p className="text-sm font-medium text-zinc-500">
-                      {date || "Today"}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-4">
-                  <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-500">
-                    <MessageCircle size={14} />
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold text-zinc-900">
-                      Private Messaging
-                    </p>
-                    <p className="text-sm font-medium text-zinc-500">
-                      Intimate, unrestricted 1-on-1 conversations
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-4">
-                  <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-green-50 text-green-500">
-                    <CircleCheck size={14} strokeWidth={2.5} />
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold text-zinc-900">
-                      Multimedia Supported
-                    </p>
-                    <p className="text-sm font-medium text-zinc-500">
-                      Exchange text, photos, and private media
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-4">
-                 
-                  <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-green-50 text-green-500">
-                    <CircleCheck size={14} strokeWidth={2.5} />
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold text-zinc-900">
-                      18+ Content Permitted
-                    </p>
-                    <p className="text-sm font-medium text-zinc-500">
-                      Uncensored mature and explicit content allowed
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <button
-              onClick={() => handlePayment("Premium")}
-              disabled={loading}
-              className="mt-10 flex w-full items-center justify-center gap-2 rounded-2xl bg-zinc-900 py-4 text-[15px] font-bold text-white shadow-md transition-all hover:bg-zinc-800 active:scale-[0.98] disabled:scale-100 disabled:opacity-70"
-            >
-              {loading ? (
-                <>
-                  <Loader2 size={18} className="animate-spin" />
-                  <span>Processing...</span>
-                </>
-              ) : (
-                <>
-                  <CheckCircle2 size={18} />
-                  <span>Pay ₹99 & Secure Spot</span>
-                </>
-              )}
-            </button>
-          </div> */}
+          {/* Keep commented block exactly as it was */}
         </div>
 
         {/* Footer Text */}
@@ -324,6 +262,70 @@ function PricingCards() {
           to our terms of service.
         </p>
       </div>
+
+      {/* Customer Details Form Modal */}
+      {showDetailsModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 pt-20 backdrop-blur-sm sm:pt-4">
+          <div className="w-full max-w-md animate-in fade-in zoom-in-95 rounded-3xl bg-white p-6 shadow-2xl duration-200 sm:p-8">
+            <h2 className="mb-2 text-2xl font-bold text-zinc-900">
+              Your Details
+            </h2>
+            <p className="mb-6 text-sm text-zinc-500">
+              We need this to securely send your booking confirmation and
+              payment receipt.
+            </p>
+
+            <form onSubmit={onModalSubmit} className="space-y-5">
+              <div>
+                <label className="mb-1.5 block text-sm font-semibold text-zinc-700">
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  required
+                  value={customerEmail}
+                  onChange={(e) => setCustomerEmail(e.target.value)}
+                  className="w-full rounded-xl border border-zinc-300 px-4 py-3 text-sm transition-all focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
+                  placeholder="you@example.com"
+                />
+              </div>
+              <div>
+                <label className="mb-1.5 block text-sm font-semibold text-zinc-700">
+                  Phone Number
+                </label>
+                <input
+                  type="tel"
+                  required
+                  pattern="[0-9]{10}"
+                  value={customerPhone}
+                  onChange={
+                    (e) => setCustomerPhone(e.target.value.replace(/\D/g, "")) // strips non-numeric characters
+                  }
+                  maxLength={10}
+                  className="w-full rounded-xl border border-zinc-300 px-4 py-3 text-sm transition-all focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
+                  placeholder="10-digit mobile number"
+                />
+              </div>
+
+              <div className="mt-8 flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowDetailsModal(false)}
+                  className="w-full rounded-xl border border-zinc-200 bg-white py-3 text-sm font-bold text-zinc-700 hover:bg-zinc-50 active:scale-[0.98]"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="w-full rounded-xl bg-zinc-900 py-3 text-sm font-bold text-white shadow-md transition-all hover:bg-zinc-800 active:scale-[0.98]"
+                >
+                  Continue to Pay
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       <ErrorModal
         isOpen={errorInfo.isOpen}
